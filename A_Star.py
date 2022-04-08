@@ -29,6 +29,7 @@ def getStatus(matrix):
             for m in range(0, i + 1):
                 for n in range(0, j):
                     if matrix[i][j] > matrix[m][n]:
+                        
                         sum += 1
     return sum
 
