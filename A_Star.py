@@ -29,7 +29,7 @@ def getStatus(matrix):
             for m in range(0, i + 1):
                 for n in range(0, j):
                     if matrix[i][j] > matrix[m][n]:
-                        
+
                         sum += 1
     return sum
 
@@ -39,7 +39,7 @@ class Node:
     def __init__(self, matrix, g=0, h=0):
         self.matrix = matrix  # 二维数组
         self.father = None  # 父节点
-        self.children = [] 
+        self.children = []
         self.g = g  # g(n):开始节点到节点n的路径代价
         self.h = h  # h(n):节点n到目标结点的最小代价路径估计值
 
@@ -181,19 +181,23 @@ class A_Star:
         # 移动数码
         if x - 1 >= 0:
             self.generate += 1
-            matrixTemp = move(copy.deepcopy(self.currentNode.matrix), x, y, x - 1, y)
+            matrixTemp = move(copy.deepcopy(
+                self.currentNode.matrix), x, y, x - 1, y)
             self.searchOneNode(Node(matrixTemp))
         if x + 1 < 3:
             self.generate += 1
-            matrixTemp = move(copy.deepcopy(self.currentNode.matrix), x, y, x + 1, y)
+            matrixTemp = move(copy.deepcopy(
+                self.currentNode.matrix), x, y, x + 1, y)
             self.searchOneNode(Node(matrixTemp))
         if y - 1 >= 0:
             self.generate += 1
-            matrixTemp = move(copy.deepcopy(self.currentNode.matrix), x, y, x, y - 1)
+            matrixTemp = move(copy.deepcopy(
+                self.currentNode.matrix), x, y, x, y - 1)
             self.searchOneNode(Node(matrixTemp))
         if y + 1 < 3:
             self.generate += 1
-            matrixTemp = move(copy.deepcopy(self.currentNode.matrix), x, y, x, y + 1)
+            matrixTemp = move(copy.deepcopy(
+                self.currentNode.matrix), x, y, x, y + 1)
             self.searchOneNode(Node(matrixTemp))
         return
 

@@ -1,6 +1,6 @@
-# TODOs 
+# TODOs
 
-## Layout 
+## Layout
 
 1. srcDstFrame layout
 
