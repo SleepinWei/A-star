@@ -131,28 +131,9 @@ class GUI():
         self.label = ttk.Label(self.infoFrame, textvariable=self.infoText)
         self.infoTexts = []
         self.matrices = tk.StringVar(value=self.infoTexts)
-        # self.listBox = tk.Listbox(self.infoFrame,height=10,listvariable=self.matrices)        
         self.infoScroll = ttk.Scrollbar(self.textFrame,orient=tk.VERTICAL)
         self.listBox = tk.Text(self.textFrame,width=7,yscrollcommand=self.infoScroll.set)
         self.infoScroll["command"]=self.listBox.yview
-        # self.infoCanvas = tk.Canvas(self.infoFrame)
-
-        # self.scroll = tk.Scrollbar()
-        # self.scroll.pack(side=tk.RIGHT, fill=tk.Y)
-        
-
-        # bind events 
-        # def drawMatrix(matrix):
-        #     # positions = [(j*20 + 5,i*20+5) for i in range(3) for j in range(3)]
-        #     position = (5,5)
-        #     self.infoCanvas.create_text(position[0],position[1],)
-        #     pass
-        # def selectListBox(e):
-        #     selectedLine = self.listBox.curselection()[0]
-        #     drawMatrix(self.infoText[selectedLine])
-        #     pass
-
-        # self.listBox.bind("<<ListBoxSelected>>",selectListBox)
 
         # layout
         self.infoFrame.grid(column=2, row=0, rowspan=4,
@@ -161,7 +142,6 @@ class GUI():
         self.label.grid(column=0, row=0)
         self.listBox.grid(column=0,row=1,sticky="wns")
         self.infoScroll.grid(column=1,row=1,sticky="wns")
-        # self.infoCanvas.grid(column=0,row=3,sticky="news",padx=5,pady=5)
 
     def setWindow(self):
         """settings for window"""
