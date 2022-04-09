@@ -56,14 +56,22 @@ class GUI():
 
         # layout 
         self.srcDstFrame.grid(column=0,row=2,sticky="wens")
-        self.srcFrame.grid(column=0,row=0)        
-        self.dstFrame.grid(column=1,row=0)
+        self.srcFrame.grid(column=0,row=0,padx=10,pady=5)        
+        self.dstFrame.grid(column=1,row=0,padx=10,pady=5)
         # pos = [(0,0),(0,1),(0,2),(1,0),(1,1),(1,2),(2,0),(2,1),(2,2)]
         pos = [(i,j) for i in range(3) for j in range(3)]
         for i in range(9):
             self.srcEntries[i].grid(column=pos[i][1],row=pos[i][0],padx=1,pady=2)
             self.dstEntries[i].grid(column=pos[i][1],row=pos[i][0],padx=1,pady=2)
-        self.confirm.grid(row=0,column=2)
+        self.confirm.grid(row=1,column=0,padx=5,pady=5)
+
+    def setInfoFrame(self):
+        self.infoFrame = tk.LabelFrame(self.content,text="Infos",width=300)
+        self.label = ttk.Label(self.infoFrame,text="INFO")
+
+        # layout
+        self.infoFrame.grid(column=2,row=0,rowspan=2,columnspan=2,sticky="nsew")
+        self.label.grid(column=0,row=0)
 
     def setWindow(self):
         """settings for window"""
@@ -99,6 +107,7 @@ class GUI():
         self.setWindow()
         self.setCanvas()
         self.setSrcDstFrame() 
+        self.setInfoFrame()
         self.root.mainloop()
 
 if __name__ == "__main__":

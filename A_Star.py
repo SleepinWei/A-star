@@ -39,6 +39,7 @@ class Node:
     def __init__(self, matrix, g=0, h=0):
         self.matrix = matrix  # 二维数组
         self.father = None  # 父节点
+        self.children = [] 
         self.g = g  # g(n):开始节点到节点n的路径代价
         self.h = h  # h(n):节点n到目标结点的最小代价路径估计值
 
