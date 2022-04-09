@@ -4,6 +4,8 @@ from tkinter import W, E, S, N
 from tkinter import messagebox as mb
 import numpy as np
 
+from A_Star import *
+
 
 class GUI():
     def __init__(self, window) -> None:
@@ -19,10 +21,11 @@ class GUI():
             self.srcDstFrame, text="Dst", padx=5, pady=5)
         self.srcEntries = []  # 9 个输入框
         self.dstEntries = []  # 9 个输入框
-        self.srcArray = np.ones((3, 3))  # 输入数据
-        self.dstArray = np.ones((3, 3))  # 输入数据
+        self.srcArray = np.ones((3, 3), dtype=int)  # 输入数据
+        self.dstArray = np.ones((3, 3), dtype=int)  # 输入数据
         self.srcString = [tk.StringVar() for i in range(9)]
         self.dstString = [tk.StringVar() for i in range(9)]
+        self.infoText = " "*50  # ?占位
 
         for i in range(9):
             self.srcEntries.append(
@@ -35,10 +38,11 @@ class GUI():
             )
 
         def checkValid(tensor: np.ndarray):
+            # return True
             cnt = [0 for i in range(9)]
             flatTensor = tensor.flatten()
             for i in flatTensor:
-                if flatTensor[int(i)] == 0:
+                if cnt[int(flatTensor[int(i)])] == 0:
                     cnt[int(flatTensor[int(i)])] += 1
                 else:
                     return False
@@ -53,7 +57,7 @@ class GUI():
                     self.dstString[i].get() if self.srcString[i].get() != "" else -1)
 
             if checkValid(self.srcArray) and checkValid(self.dstArray):
-                pass
+                self.runAStar()
             else:
                 # messagebox show error
                 mb.showwarning(title="warning", message="输入数字应该在 0-8 之间")
@@ -75,9 +79,31 @@ class GUI():
                 column=pos[i][1], row=pos[i][0], padx=1, pady=2)
         self.confirm.grid(row=1, column=0, padx=5, pady=5)
 
+    def runAStar(self):
+
+        a = A_Star(Node(self.srcArray.tolist()), Node(self.dstArray.tolist()))
+
+        # a = A_Star(Node([[2, 8, 3], [1, 0, 5], [4, 7, 6]]), Node(
+        #     [[1, 2, 3], [4, 5, 6], [7, 8, 0]]))
+
+        if a.start():
+            self.infoText = ""
+            self.infoText += "Number of expanded nodes: " + str(a.step) + "\n"
+            self.infoText += "Number of generated nodes: " + str(a.generate) + "\n"
+            self.infoText += "Time cost: " + str(a.getTime()) + " ms\n"
+            self.infoText += "Path: \n" + str(a.getPathString())
+        else:
+            self.infoText = "No path found"
+
+        print(self.infoText)
+        self.setInfoFrame()
+
     def setInfoFrame(self):
-        self.infoFrame = tk.LabelFrame(self.content, text="Infos", width=300)
-        self.label = ttk.Label(self.infoFrame, text="INFO")
+        self.infoFrame = tk.LabelFrame(self.content, text="Infos", width=1000)
+        self.label = ttk.Label(self.infoFrame, text=self.infoText)
+        
+        # self.scroll = tk.Scrollbar()
+        # self.scroll.pack(side=tk.RIGHT, fill=tk.Y)
 
         # layout
         self.infoFrame.grid(column=2, row=0, rowspan=2,
@@ -118,7 +144,7 @@ class GUI():
         self.setWindow()
         self.setCanvas()
         self.setSrcDstFrame()
-        self.setInfoFrame()
+        # self.setInfoFrame()
         self.root.mainloop()
 
 

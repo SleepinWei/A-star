@@ -13,6 +13,15 @@ def showMatrix(matrix):
     return
 
 
+def Matrix2String(matrix):
+    string = ""
+    for x in range(0, 3):
+        for y in range(0, 3):
+            string += str(matrix[x][y])+' '
+        string += '\n'
+    return string
+
+
 # 移动数码
 def move(matrix, srcX, srcY, drcX, drcY):
     temp = matrix[srcX][srcY]
@@ -105,6 +114,7 @@ class A_Star:
         self.start_time = 0
         # 搜索结束时间
         self.end_time = 0
+
         return
 
     #  获得openlist中F值最小的节点
@@ -248,7 +258,7 @@ class A_Star:
 
     # 输出搜索所花时间
     def showTime(self):
-        print("搜索花费总时间:", (self.end_time - self.start_time).seconds, "s")
+        print("搜索花费总时间:", (self.end_time - self.start_time).microseconds/1000, "ms")
 
     # 输出扩展节点数
     def showStep(self):
@@ -256,3 +266,16 @@ class A_Star:
 
     def showGenerate(self):
         print("生成的节点数:", self.generate)
+
+    def getTime(self):
+        return (self.end_time - self.start_time).microseconds/1000
+
+    def getPath(self):
+        return self.pathlist[::-1]
+
+    def getPathString(self):
+        string = ""
+        for n in self.pathlist[::-1]:
+            string += Matrix2String(n.matrix)
+            string += '\n'
+        return string

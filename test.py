@@ -16,3 +16,4 @@ if __name__ == '__main__':
         a.showTime()
     else:
         print("No solution!")
+
