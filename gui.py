@@ -29,8 +29,10 @@ class GUI():
 
         self.funcChoiceString = tk.StringVar()
         self.funcChoiceString.set("Manhattan Distance")
-        self.funcComboBox = ttk.Combobox(self.srcDstFrame,textvariable=self.funcChoiceString)
+        self.comboBoxFrame = ttk.Frame(self.srcDstFrame)
+        self.funcComboBox = ttk.Combobox(self.comboBoxFrame,textvariable=self.funcChoiceString)
         self.funcComboBox["values"] = ("Manhattan Distance","Number of misplaced blocks","Euclidiean Distance")
+        self.funcLabel = ttk.Label(self.comboBoxFrame,text="Choose Heuristic Function")
 
         # set default value for entries
         defaultSrc = [2, 8, 3, 1, 0, 5, 4, 7, 6]
@@ -94,7 +96,9 @@ class GUI():
             self.dstEntries[i].grid(
                 column=pos[i][1], row=pos[i][0], padx=1, pady=2)
         self.confirm.grid(row=1, column=0, padx=5, pady=5)
-        self.funcComboBox.grid(row=0,column=2,padx=10,pady=15,sticky=tk.N)
+        self.comboBoxFrame.grid(row=0,column=2,sticky="nsew")
+        self.funcLabel.grid(row=0,column=0,sticky="wn",pady=[15,5])
+        self.funcComboBox.grid(row=1,column=0,sticky="wn")
 
     def runAStar(self):
 
