@@ -323,6 +323,5 @@ if __name__ == "__main__":
     style = Style(theme="flatly")
     window = style.master
     window.title("A-star")
-    window.resizable(False, False)
     gui = GUI(window)
     gui.run()
