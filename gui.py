@@ -274,6 +274,7 @@ class GUI():
         """settings for canvas"""
         self.canvas = tk.Canvas(self.content)
         self.h = ttk.Scrollbar(self.content, orient=tk.HORIZONTAL)
+        self.v = ttk.Scrollbar(self.content,orient=tk.VERTICAL)
 
         # size
         self.canvas["width"] = 600
@@ -283,13 +284,15 @@ class GUI():
 
         # commands
         self.h["command"] = self.canvas.xview
-        self.canvas["xscrollcommand"] = self.h.set
-        
-        
+        self.v["command"] = self.canvas.yview
 
+        self.canvas["xscrollcommand"] = self.h.set
+        self.canvas["yscrollcommand"] =self.v.set
+        
         # layout
         self.canvas.grid(column=0, row=0, sticky=[N, S, E, W])
         self.h.grid(column=0, row=1, sticky=(W, E))
+        self.v.grid(column=1,row=0,sticky="ns")
 
     def run(self):
         self.setWindow()
