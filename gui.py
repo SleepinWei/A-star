@@ -11,6 +11,10 @@ class GUI():
     def __init__(self, window) -> None:
         self.root = window
         self.content = ttk.Frame(self.root)  # 整体看作一个 content 框
+        self.root.columnconfigure(0,weight=1)
+        self.root.rowconfigure(0,weight=1)
+        self.content.rowconfigure(0,weight=1)
+        self.content.columnconfigure(0,weight=1)
 
     def setSrcDstFrame(self):
         """input src and dst matrix"""
