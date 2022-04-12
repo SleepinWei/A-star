@@ -3,7 +3,7 @@ from tkinter import ttk
 from tkinter import W, E, S, N
 from tkinter import messagebox as mb
 import numpy as np
-
+from ttkbootstrap import Style
 from A_Star import *
 
 
