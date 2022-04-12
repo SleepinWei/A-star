@@ -1,7 +1,10 @@
+from collections import deque
 import tkinter as tk
-from tkinter import ttk
+from tkinter import StringVar, ttk
 from tkinter import W, E, S, N
 from tkinter import messagebox as mb
+from turtle import width
+from matplotlib.ft2font import VERTICAL
 import numpy as np
 from ttkbootstrap import Style
 from A_Star import *
@@ -27,6 +30,16 @@ class GUI():
         self.dstString = [tk.StringVar() for i in range(9)]
         self.infoText = " "*50  # ?占位
 
+
+        # set default value for entries
+        defaultSrc = [2, 8, 3, 1, 0, 5, 4, 7, 6]
+        defaultSrc = [str(i) for i in defaultSrc]
+        defaultDst = [1, 2, 3, 4, 5, 6, 7, 8, 0]
+        defaultDst = [str(i) for i in defaultDst]
+        for i in range(9):
+            self.srcString[i].set(defaultSrc[i])
+            self.dstString[i].set(defaultDst[i])
+
         for i in range(9):
             self.srcEntries.append(
                 ttk.Entry(self.srcFrame,
@@ -36,6 +49,7 @@ class GUI():
                 ttk.Entry(self.dstFrame,
                           textvariable=self.dstString[i], width=3)
             )
+        
 
         def checkValid(tensor: np.ndarray):
             # return True
@@ -55,9 +69,13 @@ class GUI():
                     self.srcString[i].get() if self.srcString[i].get() != "" else -1)
                 self.dstArray[pos[i][0], pos[i][1]] = int(
                     self.dstString[i].get() if self.srcString[i].get() != "" else -1)
+            #TODO:test 
+            print(self.srcArray.flatten())
+            print(self.dstArray.flatten())
 
             if checkValid(self.srcArray) and checkValid(self.dstArray):
                 self.runAStar()
+                self.drawSearchTree()
             else:
                 # messagebox show error
                 mb.showwarning(title="warning", message="输入数字应该在 0-8 之间")
@@ -81,34 +99,115 @@ class GUI():
 
     def runAStar(self):
 
-        a = A_Star(Node(self.srcArray.tolist()), Node(self.dstArray.tolist()))
+        self.a = A_Star(Node(self.srcArray.tolist()), Node(self.dstArray.tolist()))
 
         # a = A_Star(Node([[2, 8, 3], [1, 0, 5], [4, 7, 6]]), Node(
         #     [[1, 2, 3], [4, 5, 6], [7, 8, 0]]))
 
-        if a.start():
-            self.infoText = ""
-            self.infoText += "Number of expanded nodes: " + str(a.step) + "\n"
-            self.infoText += "Number of generated nodes: " + str(a.generate) + "\n"
-            self.infoText += "Time cost: " + str(a.getTime()) + " ms\n"
-            self.infoText += "Path: \n" + str(a.getPathString())
+        if self.a.start():
+            infoText = ""
+            infoText += "Number of expanded nodes: " + str(self.a.step) + "\n"
+            infoText += "Number of generated nodes: " + str(self.a.generate) + "\n"
+            infoText += "Time cost: " + str(self.a.getTime()) + " ms\n"
+            self.infoText.set(infoText)
+            # self.infoText += "Path: \n" + str(a.getPathString())
+            self.infoTexts = [Matrix2String(n.matrix) for n in self.a.pathlist[::-1]]
+            self.matrices.set(self.infoTexts)
+            self.listBox.delete("0.0","end")
+            for string in self.infoTexts:
+                self.listBox.insert("end",string + "\n")
+            # self.listBox = tk.Listbox(self.infoFrame,height=10,listvariable=self.matrices)
+            # TODO: test
+            print(self.infoTexts)
+            print(self.matrices.get())
         else:
-            self.infoText = "No path found"
+            self.infoText.set("No path found")
 
         print(self.infoText)
-        self.setInfoFrame()
+        # self.setInfoFrame()
+
+    def drawSearchTree(self):
+        startNode = self.a.startNode
+        self.i = 0  
+        self.canvas.delete("all")
+
+        def drawNode(node:Node):
+            # 画当前节点与连接线
+            gap = 40 
+            offset = 20 
+            self.canvas.create_text(node.x * gap + offset,node.y*gap+offset,text="%.1f"%(node.g + node.h))
+            if node.father:
+                self.canvas.create_line(node.x * gap+offset,node.y*gap+offset,node.father.x*gap+offset,node.father.y * gap+offset)
+
+        def iterSearch(node:Node,depth):
+            childLen = len(node.children)
+            if childLen == 0: 
+                node.x = self.i 
+                node.y = depth 
+                self.i += 1
+
+            elif childLen == 1: 
+                iterSearch(node.children[0],depth+1)
+                self.i = node.children[0].x
+                node.x = self.i
+                node.y = depth 
+                self.i += 1
+
+            elif childLen == 2:
+                iterSearch(node.children[0],depth+1)
+                node.x = self.i 
+                node.y = depth
+                self.i+=1
+                iterSearch(node.children[1],depth+1)
+
+            elif childLen == 3:
+                iterSearch(node.children[0],depth+1)
+                iterSearch(node.children[1],depth+1)
+                self.i = node.children[1].x
+                node.x = self.i 
+                node.y = depth
+                self.i += 1
+
+                iterSearch(node.children[2],depth+1)
+
+            elif childLen == 4: 
+                iterSearch(node.children[0],depth+1)
+                iterSearch(node.children[1],depth+1)
+                node.x = self.i 
+                node.y = depth
+                self.i += 1 
+
+                iterSearch(node.children[2],depth+1)
+                iterSearch(node.children[3],depth+1)
+        
+        def iterDraw(node:Node):
+            if node == None: 
+                return 
+            for child in node.children:
+                iterDraw(child)
+            drawNode(node) 
+
+        iterSearch(startNode,0)
+        iterDraw(startNode)
 
     def setInfoFrame(self):
-        self.infoFrame = tk.LabelFrame(self.content, text="Infos", width=1000)
-        self.label = ttk.Label(self.infoFrame, text=self.infoText)
-        
-        # self.scroll = tk.Scrollbar()
-        # self.scroll.pack(side=tk.RIGHT, fill=tk.Y)
+        self.infoFrame = tk.LabelFrame(self.content, text="Infos")
+        self.textFrame = tk.LabelFrame(self.infoFrame,text="Path")
+        self.infoText = StringVar()
+        self.label = ttk.Label(self.infoFrame, textvariable=self.infoText)
+        self.infoTexts = []
+        self.matrices = tk.StringVar(value=self.infoTexts)
+        self.infoScroll = ttk.Scrollbar(self.textFrame,orient=tk.VERTICAL)
+        self.listBox = tk.Text(self.textFrame,width=7,yscrollcommand=self.infoScroll.set)
+        self.infoScroll["command"]=self.listBox.yview
 
         # layout
-        self.infoFrame.grid(column=2, row=0, rowspan=2,
-                            columnspan=2, sticky="nsew")
+        self.infoFrame.grid(column=2, row=0, rowspan=4,
+                            columnspan=2, sticky="nsew",padx=5,pady=10)
+        self.textFrame.grid(column=0,row=1,rowspan=2,sticky="wnes")
         self.label.grid(column=0, row=0)
+        self.listBox.grid(column=0,row=1,sticky="wns")
+        self.infoScroll.grid(column=1,row=1,sticky="wns")
 
     def setWindow(self):
         """settings for window"""
@@ -125,8 +224,8 @@ class GUI():
         self.h = ttk.Scrollbar(self.content, orient=tk.HORIZONTAL)
 
         # size
-        self.canvas["width"] = 400
-        self.canvas["height"] = 400
+        self.canvas["width"] = 600
+        self.canvas["height"] = 600
         self.canvas["scrollregion"] = (0, 0, 1000, 1000)
         self.canvas.configure(background="LightCyan")
 
@@ -134,7 +233,7 @@ class GUI():
         self.h["command"] = self.canvas.xview
         self.canvas["xscrollcommand"] = self.h.set
         # self.canvas.create_rectangle((10,10,30,30),fill="LightCyan")
-        self.canvas.create_line(10, 10, 200, 50)
+        # self.canvas.create_line(10, 10, 200, 50)
 
         # layout
         self.canvas.grid(column=0, row=0, sticky=[N, S, E, W])
@@ -144,7 +243,8 @@ class GUI():
         self.setWindow()
         self.setCanvas()
         self.setSrcDstFrame()
-        # self.setInfoFrame()
+        self.setInfoFrame()
+        # self.runAStar()
         self.root.mainloop()
 
 
