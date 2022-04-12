@@ -220,10 +220,15 @@ class GUI():
             if targetNode:
                 matrixString = Matrix2String(targetNode.matrix)
                 self.nodeText.insert("0.0",matrixString)
+        def on_enter(e):
+            self.canvas.config(cursor="hand2")
+        def on_leave(e):
+            self.canvas.config(cursor="")
             
-        # nodes = self.canvas.find_withtag("node")
-        # for node in nodes:
-            # self.canvas.tag_bind(node,"<1>",on_click) 
+        nodes = self.canvas.find_withtag("node")
+        for node in nodes:
+            self.canvas.tag_bind(node,"<Enter>",on_enter) 
+            self.canvas.tag_bind(node,"<Leave>",on_leave)
         self.canvas.bind("<1>",on_click)
 
     def setInfoFrame(self):
