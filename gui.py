@@ -31,7 +31,8 @@ class GUI():
         self.funcChoiceString.set("Manhattan Distance")
         self.comboBoxFrame = ttk.Frame(self.srcDstFrame)
         self.funcComboBox = ttk.Combobox(self.comboBoxFrame,textvariable=self.funcChoiceString)
-        self.funcComboBox["values"] = ("Manhattan Distance","Number of misplaced blocks","Euclidiean Distance")
+        self.funcComboBox["values"] = ("Manhattan Distance","Number of misplaced blocks",\
+            "Euclidiean Distance","Breadth First")
         self.funcLabel = ttk.Label(self.comboBoxFrame,text="Choose Heuristic Function")
 
         # set default value for entries
@@ -114,6 +115,8 @@ class GUI():
             func = setH2
         elif funcChoice == "Euclidiean Distance":
             func = setH3
+        elif funcChoice == "Breadth First":
+            func = breadthFirstHeuristic
 
         if self.a.start(func):
             infoText = ""
@@ -132,8 +135,6 @@ class GUI():
         else:
             self.infoText.set("No path found")
 
-        print(self.infoText)
-        # self.setInfoFrame()
 
     def drawSearchTree(self):
         startNode = self.a.startNode
@@ -142,16 +143,18 @@ class GUI():
 
         def drawNode(node:Node):
             # 画当前节点与连接线
-            gap = 40 
-            offset = 20 
-            self.canvas.create_text(node.x * gap + offset,node.y*gap+offset,text="%.1f"%(node.g + node.h),\
+            self.gap = 25 
+            self.offset = 20 
+            self.canvas.create_text(node.x * self.gap + self.offset,node.y*self.gap+self.offset,\
+                text="%.1f"%(node.g + node.h),\
                 tags=("node"))
             if node.father:
                 if node in self.a.pathlist:
                     color = "green" 
                 else:
                     color = "black" 
-                self.canvas.create_line(node.x * gap+offset,node.y*gap+offset,node.father.x*gap+offset,node.father.y * gap+offset,\
+                self.canvas.create_line(node.x * self.gap+self.offset,node.y*self.gap+self.offset,node.father.x*self.gap+self.offset,\
+                    node.father.y * self.gap+self.offset,\
                     tags=("line"),fill=color)
 
         def iterSearch(node:Node,depth):
@@ -216,10 +219,8 @@ class GUI():
             return None
         def on_click(e):
             self.nodeText.delete("0.0","end")
-            gap = 40 
-            offset = 20
-            x = (e.x - offset)//gap
-            y = (e.y - offset)//gap
+            x = (e.x - self.offset)//self.gap
+            y = (e.y - self.offset)//self.gap
             targetNode = searchNode(self.a.startNode,x,y) 
             if targetNode:
                 matrixString = Matrix2String(targetNode.matrix)
@@ -277,9 +278,9 @@ class GUI():
         self.v = ttk.Scrollbar(self.content,orient=tk.VERTICAL)
 
         # size
-        self.canvas["width"] = 600
+        self.canvas["width"] = 1000
         self.canvas["height"] = 600
-        self.canvas["scrollregion"] = (0, 0, 1000, 1000)
+        self.canvas["scrollregion"] = (0, 0, 2000, 2000)
         self.canvas.configure(background="LightCyan")
 
         # commands
