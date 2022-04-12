@@ -1,3 +1,4 @@
+from collections import deque
 import tkinter as tk
 from tkinter import StringVar, ttk
 from tkinter import W, E, S, N
@@ -74,6 +75,7 @@ class GUI():
 
             if checkValid(self.srcArray) and checkValid(self.dstArray):
                 self.runAStar()
+                self.drawSearchTree()
             else:
                 # messagebox show error
                 mb.showwarning(title="warning", message="输入数字应该在 0-8 之间")
@@ -124,6 +126,66 @@ class GUI():
         print(self.infoText)
         # self.setInfoFrame()
 
+    def drawSearchTree(self):
+        startNode = self.a.startNode
+        self.i = 0  
+        self.canvas.delete("all")
+
+        def drawNode(node:Node):
+            # 画当前节点与连接线
+            gap = 25 
+            offset = 20 
+            self.canvas.create_text(node.x * gap + offset,node.y*gap+offset,text="%.1f"%(node.g + node.h))
+            if node.father:
+                self.canvas.create_line(node.x * gap+offset,node.y*gap+offset,node.father.x*gap+offset,node.father.y * gap+offset)
+
+        def iterSearch(node:Node,depth):
+            childLen = len(node.children)
+            if childLen == 0: 
+                node.x = self.i 
+                node.y = depth 
+                self.i += 1
+
+            elif childLen == 1: 
+                node.x = self.i
+                node.y = depth 
+                iterSearch(node.children[0],depth+1)
+
+            elif childLen == 2:
+                iterSearch(node.children[0],depth+1)
+                node.x = self.i 
+                node.y = depth
+                self.i+=1
+                iterSearch(node.children[1],depth+1)
+
+            elif childLen == 3:
+                iterSearch(node.children[0],depth+1)
+                node.x = self.i 
+                node.y = depth
+                iterSearch(node.children[1],depth+1)
+
+                iterSearch(node.children[2],depth+1)
+
+            elif childLen == 4: 
+                iterSearch(node.children[0],depth+1)
+                iterSearch(node.children[1],depth+1)
+                node.x = self.i 
+                node.y = depth
+                self.i += 1 
+
+                iterSearch(node.children[2],depth+1)
+                iterSearch(node.children[3],depth+1)
+        
+        def iterDraw(node:Node):
+            if node == None: 
+                return 
+            for child in node.children:
+                iterDraw(child)
+            drawNode(node) 
+
+        iterSearch(startNode,0)
+        iterDraw(startNode)
+
     def setInfoFrame(self):
         self.infoFrame = tk.LabelFrame(self.content, text="Infos")
         self.textFrame = tk.Frame(self.infoFrame)
@@ -158,8 +220,8 @@ class GUI():
         self.h = ttk.Scrollbar(self.content, orient=tk.HORIZONTAL)
 
         # size
-        self.canvas["width"] = 400
-        self.canvas["height"] = 400
+        self.canvas["width"] = 600
+        self.canvas["height"] = 600
         self.canvas["scrollregion"] = (0, 0, 1000, 1000)
         self.canvas.configure(background="LightCyan")
 
@@ -167,7 +229,7 @@ class GUI():
         self.h["command"] = self.canvas.xview
         self.canvas["xscrollcommand"] = self.h.set
         # self.canvas.create_rectangle((10,10,30,30),fill="LightCyan")
-        self.canvas.create_line(10, 10, 200, 50)
+        # self.canvas.create_line(10, 10, 200, 50)
 
         # layout
         self.canvas.grid(column=0, row=0, sticky=[N, S, E, W])

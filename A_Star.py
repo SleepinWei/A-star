@@ -51,6 +51,8 @@ class Node:
         self.children = []
         self.g = g  # g(n):开始节点到节点n的路径代价
         self.h = h  # h(n):节点n到目标结点的最小代价路径估计值
+        self.x = 0 
+        self.y = 0 # positions 
 
     # 以Manhattan距离为启发函数
     def setH1(self, endNode):
@@ -166,13 +168,16 @@ class A_Star:
             node.setG(gTemp)
             node.setH3(self.endNode)  # H值计算   !!此行代码可更换启发函数，例setH1，setH2……
             self.openList.append(node)
+            self.currentNode.children.append(node) # 记录子节点
             node.father = self.currentNode
         # 如果在Open表中，判断currentNode到当前点的G是否更小，如果更小，就重新计算g值，并且改变父节点
         else:
             nodeTmp = self.getNodeFromOpenList(node)
             if self.currentNode.g + gTemp < nodeTmp.g:
                 nodeTmp.g = self.currentNode.g + gTemp
+                nodeTmp.father.children.remove(nodeTmp)
                 nodeTmp.father = self.currentNode
+                self.currentNode.children.append(nodeTmp) # add child node. 
         return
 
     # 搜索下一个可以移动的数码，并进行移动，以此生成新节点
