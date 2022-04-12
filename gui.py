@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import StringVar, ttk
+from tkinter import Canvas, StringVar, ttk
 from tkinter import W, E, S, N
 from tkinter import messagebox as mb
 import numpy as np
@@ -146,9 +146,15 @@ class GUI():
             # 画当前节点与连接线
             gap = 40 
             offset = 20 
-            self.canvas.create_text(node.x * gap + offset,node.y*gap+offset,text="%.1f"%(node.g + node.h))
+            self.canvas.create_text(node.x * gap + offset,node.y*gap+offset,text="%.1f"%(node.g + node.h),\
+                tags=("node"))
             if node.father:
-                self.canvas.create_line(node.x * gap+offset,node.y*gap+offset,node.father.x*gap+offset,node.father.y * gap+offset)
+                if node in self.a.pathlist:
+                    color = "green" 
+                else:
+                    color = "black" 
+                self.canvas.create_line(node.x * gap+offset,node.y*gap+offset,node.father.x*gap+offset,node.father.y * gap+offset,\
+                    tags=("line"),fill=color)
 
         def iterSearch(node:Node,depth):
             childLen = len(node.children)
@@ -200,9 +206,19 @@ class GUI():
 
         iterSearch(startNode,0)
         iterDraw(startNode)
+        
+        # event bindings 
+        def on_click(e):
+            self.nodeText.delete("0.0","end")
+            matrixString = Matrix2String()
+            self.nodeText.insert()
+            
+        nodes = self.canvas.find_withtag("node")
+        for node in nodes:
+            self.canvas.tag_bind(node,"<1>",on_click) 
 
     def setInfoFrame(self):
-        self.infoFrame = tk.LabelFrame(self.content, text="Infos")
+        self.infoFrame = ttk.LabelFrame(self.content, text="Infos")
         self.textFrame = tk.LabelFrame(self.infoFrame,text="Path")
         self.infoText = StringVar()
         self.label = ttk.Label(self.infoFrame, textvariable=self.infoText)
@@ -211,6 +227,9 @@ class GUI():
         self.infoScroll = ttk.Scrollbar(self.textFrame,orient=tk.VERTICAL)
         self.listBox = tk.Text(self.textFrame,width=7,yscrollcommand=self.infoScroll.set)
         self.infoScroll["command"]=self.listBox.yview
+        self.nodeTextFrame = ttk.Frame(self.infoFrame)
+        self.nodeLabel = ttk.Label(self.nodeTextFrame,text="Current Node")
+        self.nodeText = tk.Text(self.nodeTextFrame,width=7,height=10)
 
         # layout
         self.infoFrame.grid(column=2, row=0, rowspan=4,
@@ -219,6 +238,9 @@ class GUI():
         self.label.grid(column=0, row=0)
         self.listBox.grid(column=0,row=1,sticky="wns")
         self.infoScroll.grid(column=1,row=1,sticky="wns")
+        self.nodeTextFrame.grid(column=0,row=4,columnspan=2,sticky="news",padx=5,pady=5)
+        self.nodeLabel.grid(column=0,row=0,sticky="w")
+        self.nodeText.grid(column=0,row=1,sticky="news")
 
     def setWindow(self):
         """settings for window"""
@@ -243,8 +265,8 @@ class GUI():
         # commands
         self.h["command"] = self.canvas.xview
         self.canvas["xscrollcommand"] = self.h.set
-        # self.canvas.create_rectangle((10,10,30,30),fill="LightCyan")
-        # self.canvas.create_line(10, 10, 200, 50)
+        
+        
 
         # layout
         self.canvas.grid(column=0, row=0, sticky=[N, S, E, W])
