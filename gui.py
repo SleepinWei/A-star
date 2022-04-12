@@ -70,9 +70,6 @@ class GUI():
                     self.srcString[i].get() if self.srcString[i].get() != "" else -1)
                 self.dstArray[pos[i][0], pos[i][1]] = int(
                     self.dstString[i].get() if self.srcString[i].get() != "" else -1)
-            #TODO:test 
-            print(self.srcArray.flatten())
-            print(self.dstArray.flatten())
 
             if checkValid(self.srcArray) and checkValid(self.dstArray):
                 self.runAStar()
@@ -128,9 +125,6 @@ class GUI():
             for string in self.infoTexts:
                 self.listBox.insert("end",string + "\n")
             # self.listBox = tk.Listbox(self.infoFrame,height=10,listvariable=self.matrices)
-            # TODO: test
-            print(self.infoTexts)
-            print(self.matrices.get())
         else:
             self.infoText.set("No path found")
 
@@ -208,14 +202,29 @@ class GUI():
         iterDraw(startNode)
         
         # event bindings 
+        def searchNode(startNode,x,y):
+            if startNode.x == x and startNode.y == y:
+                return startNode
+            for child in startNode.children:
+                node = searchNode(child,x,y)
+                if node:
+                    return node
+            return None
         def on_click(e):
             self.nodeText.delete("0.0","end")
-            matrixString = Matrix2String()
-            self.nodeText.insert()
+            gap = 40 
+            offset = 20
+            x = (e.x - offset)//gap
+            y = (e.y - offset)//gap
+            targetNode = searchNode(self.a.startNode,x,y) 
+            if targetNode:
+                matrixString = Matrix2String(targetNode.matrix)
+                self.nodeText.insert("0.0",matrixString)
             
-        nodes = self.canvas.find_withtag("node")
-        for node in nodes:
-            self.canvas.tag_bind(node,"<1>",on_click) 
+        # nodes = self.canvas.find_withtag("node")
+        # for node in nodes:
+            # self.canvas.tag_bind(node,"<1>",on_click) 
+        self.canvas.bind("<1>",on_click)
 
     def setInfoFrame(self):
         self.infoFrame = ttk.LabelFrame(self.content, text="Infos")
@@ -229,7 +238,8 @@ class GUI():
         self.infoScroll["command"]=self.listBox.yview
         self.nodeTextFrame = ttk.Frame(self.infoFrame)
         self.nodeLabel = ttk.Label(self.nodeTextFrame,text="Current Node")
-        self.nodeText = tk.Text(self.nodeTextFrame,width=7,height=10)
+        self.nodeText = tk.Text(self.nodeTextFrame,width=7,height=7)
+
 
         # layout
         self.infoFrame.grid(column=2, row=0, rowspan=4,
@@ -240,7 +250,7 @@ class GUI():
         self.infoScroll.grid(column=1,row=1,sticky="wns")
         self.nodeTextFrame.grid(column=0,row=4,columnspan=2,sticky="news",padx=5,pady=5)
         self.nodeLabel.grid(column=0,row=0,sticky="w")
-        self.nodeText.grid(column=0,row=1,sticky="news")
+        self.nodeText.grid(column=0,row=1,sticky="w")
 
     def setWindow(self):
         """settings for window"""
