@@ -133,7 +133,7 @@ class GUI():
 
         def drawNode(node:Node):
             # 画当前节点与连接线
-            gap = 25 
+            gap = 40 
             offset = 20 
             self.canvas.create_text(node.x * gap + offset,node.y*gap+offset,text="%.1f"%(node.g + node.h))
             if node.father:
@@ -147,9 +147,11 @@ class GUI():
                 self.i += 1
 
             elif childLen == 1: 
+                iterSearch(node.children[0],depth+1)
+                self.i = node.children[0].x
                 node.x = self.i
                 node.y = depth 
-                iterSearch(node.children[0],depth+1)
+                self.i += 1
 
             elif childLen == 2:
                 iterSearch(node.children[0],depth+1)
@@ -160,9 +162,11 @@ class GUI():
 
             elif childLen == 3:
                 iterSearch(node.children[0],depth+1)
+                iterSearch(node.children[1],depth+1)
+                self.i = node.children[1].x
                 node.x = self.i 
                 node.y = depth
-                iterSearch(node.children[1],depth+1)
+                self.i += 1
 
                 iterSearch(node.children[2],depth+1)
 
@@ -188,7 +192,7 @@ class GUI():
 
     def setInfoFrame(self):
         self.infoFrame = tk.LabelFrame(self.content, text="Infos")
-        self.textFrame = tk.Frame(self.infoFrame)
+        self.textFrame = tk.LabelFrame(self.infoFrame,text="Path")
         self.infoText = StringVar()
         self.label = ttk.Label(self.infoFrame, textvariable=self.infoText)
         self.infoTexts = []
