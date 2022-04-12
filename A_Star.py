@@ -66,7 +66,8 @@ def setH3(startNode, endNode):
                 for n in range(0, 3):
                     if startNode.matrix[x][y] == endNode.matrix[m][n]:
                         startNode.h += math.sqrt((m-x)*(m-x)+(n-y)*(n-y))
-
+def breadthFirstHeuristic(startNode,endNode):
+    return 0
 
 # 定义节点数据
 class Node:

@@ -11,6 +11,10 @@ class GUI():
     def __init__(self, window) -> None:
         self.root = window
         self.content = ttk.Frame(self.root)  # 整体看作一个 content 框
+        self.root.columnconfigure(0,weight=1)
+        self.root.rowconfigure(0,weight=1)
+        self.content.rowconfigure(0,weight=1)
+        self.content.columnconfigure(0,weight=1)
 
     def setSrcDstFrame(self):
         """input src and dst matrix"""
@@ -30,12 +34,11 @@ class GUI():
         self.funcChoiceString = tk.StringVar()
         self.funcChoiceString.set("Manhattan Distance")
         self.comboBoxFrame = ttk.Frame(self.srcDstFrame)
-        self.funcComboBox = ttk.Combobox(
-            self.comboBoxFrame, textvariable=self.funcChoiceString)
-        self.funcComboBox["values"] = (
-            "Manhattan Distance", "Number of misplaced blocks", "Euclidiean Distance")
-        self.funcLabel = ttk.Label(
-            self.comboBoxFrame, text="Choose Heuristic Function")
+
+        self.funcComboBox = ttk.Combobox(self.comboBoxFrame,textvariable=self.funcChoiceString)
+        self.funcComboBox["values"] = ("Manhattan Distance","Number of misplaced blocks",\
+            "Euclidiean Distance","Breadth First")
+        self.funcLabel = ttk.Label(self.comboBoxFrame,text="Choose Heuristic Function")
 
         # set default value for entries
         defaultSrc = [2, 8, 3, 1, 0, 5, 4, 7, 6]
@@ -116,6 +119,8 @@ class GUI():
             func = setH2
         elif funcChoice == "Euclidiean Distance":
             func = setH3
+        elif funcChoice == "Breadth First":
+            func = breadthFirstHeuristic
 
         if self.a.start(func):
             infoText = ""
@@ -136,8 +141,6 @@ class GUI():
         else:
             self.infoText.set("No path found")
 
-        print(self.infoText)
-        # self.setInfoFrame()
 
     def drawSearchTree(self):
         startNode = self.a.startNode
@@ -146,18 +149,21 @@ class GUI():
 
         def drawNode(node: Node):
             # 画当前节点与连接线
-            gap = 40
-            offset = 20
-            self.canvas.create_text(node.x * gap + offset, node.y*gap+offset, text="%.1f" % (node.g + node.h),
-                                    tags=("node"))
+            self.gap = 25 
+            self.offset = 20 
+            self.canvas.create_text(node.x * self.gap + self.offset,node.y*self.gap+self.offset,\
+                text="%.1f"%(node.g + node.h),\
+                tags=("node"))
+
             if node.father:
                 if node in self.a.pathlist:
                     color = "green"
                 else:
-                    color = "black"
-                self.canvas.create_line(node.x * gap+offset, node.y*gap+offset, node.father.x*gap+offset, node.father.y * gap+offset,
-                                        tags=("line"), fill=color)
-
+                    color = "black" 
+                self.canvas.create_line(node.x * self.gap+self.offset,node.y*self.gap+self.offset,node.father.x*self.gap+self.offset,\
+                    node.father.y * self.gap+self.offset,\
+                    tags=("line"),fill=color)
+                
         def iterSearch(node: Node, depth):
             childLen = len(node.children)
             if childLen == 0:
@@ -220,12 +226,11 @@ class GUI():
             return None
 
         def on_click(e):
-            self.nodeText.delete("0.0", "end")
-            gap = 40
-            offset = 20
-            x = (e.x - offset)//gap
-            y = (e.y - offset)//gap
-            targetNode = searchNode(self.a.startNode, x, y)
+            self.nodeText.delete("0.0","end")
+            x = (e.x - self.offset)//self.gap
+            y = (e.y - self.offset)//self.gap
+            targetNode = searchNode(self.a.startNode,x,y) 
+
             if targetNode:
                 matrixString = Matrix2String(targetNode.matrix)
                 self.nodeText.insert("0.0", matrixString)
@@ -287,9 +292,9 @@ class GUI():
         self.v = ttk.Scrollbar(self.content, orient=tk.VERTICAL)
 
         # size
-        self.canvas["width"] = 500
+        self.canvas["width"] = 1000
         self.canvas["height"] = 600
-        self.canvas["scrollregion"] = (0, 0, 1000, 1000)
+        self.canvas["scrollregion"] = (0, 0, 2000, 2000)
         self.canvas.configure(background="LightCyan")
 
         # commands
