@@ -1,10 +1,7 @@
-from collections import deque
 import tkinter as tk
 from tkinter import StringVar, ttk
 from tkinter import W, E, S, N
 from tkinter import messagebox as mb
-from turtle import width
-from matplotlib.ft2font import VERTICAL
 import numpy as np
 
 from A_Star import *
@@ -30,6 +27,10 @@ class GUI():
         self.dstString = [tk.StringVar() for i in range(9)]
         self.infoText = " "*50  # ?占位
 
+        self.funcChoiceString = tk.StringVar()
+        self.funcChoiceString.set("Manhattan Distance")
+        self.funcComboBox = ttk.Combobox(self.srcDstFrame,textvariable=self.funcChoiceString)
+        self.funcComboBox["values"] = ("Manhattan Distance","Number of misplaced blocks","Euclidiean Distance")
 
         # set default value for entries
         defaultSrc = [2, 8, 3, 1, 0, 5, 4, 7, 6]
@@ -96,19 +97,29 @@ class GUI():
             self.dstEntries[i].grid(
                 column=pos[i][1], row=pos[i][0], padx=1, pady=2)
         self.confirm.grid(row=1, column=0, padx=5, pady=5)
+        self.funcComboBox.grid(row=0,column=2,padx=10,pady=15,sticky=tk.N)
 
     def runAStar(self):
 
         self.a = A_Star(Node(self.srcArray.tolist()), Node(self.dstArray.tolist()))
-
+        
         # a = A_Star(Node([[2, 8, 3], [1, 0, 5], [4, 7, 6]]), Node(
         #     [[1, 2, 3], [4, 5, 6], [7, 8, 0]]))
+        funcChoice = self.funcChoiceString.get()
+        func = None
+        if funcChoice == "Manhattan Distance":
+            func = setH1
+        elif funcChoice == "Number of misplaced blocks":
+            func = setH2
+        elif funcChoice == "Euclidiean Distance":
+            func = setH3
 
-        if self.a.start():
+        if self.a.start(func):
             infoText = ""
             infoText += "Number of expanded nodes: " + str(self.a.step) + "\n"
             infoText += "Number of generated nodes: " + str(self.a.generate) + "\n"
             infoText += "Time cost: " + str(self.a.getTime()) + " ms\n"
+            infoText += "Function Choice: " + funcChoice + "\n"
             self.infoText.set(infoText)
             # self.infoText += "Path: \n" + str(a.getPathString())
             self.infoTexts = [Matrix2String(n.matrix) for n in self.a.pathlist[::-1]]
