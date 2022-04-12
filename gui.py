@@ -3,7 +3,7 @@ from tkinter import Canvas, StringVar, ttk
 from tkinter import W, E, S, N
 from tkinter import messagebox as mb
 import numpy as np
-
+from ttkbootstrap import Style
 from A_Star import *
 
 
@@ -34,6 +34,7 @@ class GUI():
         self.funcChoiceString = tk.StringVar()
         self.funcChoiceString.set("Manhattan Distance")
         self.comboBoxFrame = ttk.Frame(self.srcDstFrame)
+
         self.funcComboBox = ttk.Combobox(self.comboBoxFrame,textvariable=self.funcChoiceString)
         self.funcComboBox["values"] = ("Manhattan Distance","Number of misplaced blocks",\
             "Euclidiean Distance","Breadth First")
@@ -57,7 +58,6 @@ class GUI():
                 ttk.Entry(self.dstFrame,
                           textvariable=self.dstString[i], width=3)
             )
-        
 
         def checkValid(tensor: np.ndarray):
             # return True
@@ -84,7 +84,6 @@ class GUI():
             else:
                 # messagebox show error
                 mb.showwarning(title="warning", message="输入数字应该在 0-8 之间")
-                pass
 
         self.confirm = ttk.Button(
             self.srcDstFrame, text="Confirm", command=confirmSrcDst)
@@ -100,15 +99,16 @@ class GUI():
                 column=pos[i][1], row=pos[i][0], padx=1, pady=2)
             self.dstEntries[i].grid(
                 column=pos[i][1], row=pos[i][0], padx=1, pady=2)
-        self.confirm.grid(row=1, column=0, padx=5, pady=5)
-        self.comboBoxFrame.grid(row=0,column=2,sticky="nsew")
-        self.funcLabel.grid(row=0,column=0,sticky="wn",pady=[15,5])
-        self.funcComboBox.grid(row=1,column=0,sticky="wn")
+        self.confirm.grid(row=0, column=3, padx=10, pady=2, sticky="nsew")
+        self.comboBoxFrame.grid(row=0, column=2, sticky="nsew")
+        self.funcLabel.grid(row=0, column=0, sticky="wn", pady=[15, 5])
+        self.funcComboBox.grid(row=1, column=0, sticky="wn")
 
     def runAStar(self):
 
-        self.a = A_Star(Node(self.srcArray.tolist()), Node(self.dstArray.tolist()))
-        
+        self.a = A_Star(Node(self.srcArray.tolist()),
+                        Node(self.dstArray.tolist()))
+
         # a = A_Star(Node([[2, 8, 3], [1, 0, 5], [4, 7, 6]]), Node(
         #     [[1, 2, 3], [4, 5, 6], [7, 8, 0]]))
         funcChoice = self.funcChoiceString.get()
@@ -125,16 +125,18 @@ class GUI():
         if self.a.start(func):
             infoText = ""
             infoText += "Number of expanded nodes: " + str(self.a.step) + "\n"
-            infoText += "Number of generated nodes: " + str(self.a.generate) + "\n"
+            infoText += "Number of generated nodes: " + \
+                str(self.a.generate) + "\n"
             infoText += "Time cost: " + str(self.a.getTime()) + " ms\n"
             infoText += "Function Choice: " + funcChoice + "\n"
             self.infoText.set(infoText)
             # self.infoText += "Path: \n" + str(a.getPathString())
-            self.infoTexts = [Matrix2String(n.matrix) for n in self.a.pathlist[::-1]]
+            self.infoTexts = [Matrix2String(n.matrix)
+                              for n in self.a.pathlist[::-1]]
             self.matrices.set(self.infoTexts)
-            self.listBox.delete("0.0","end")
+            self.listBox.delete("0.0", "end")
             for string in self.infoTexts:
-                self.listBox.insert("end",string + "\n")
+                self.listBox.insert("end", string + "\n")
             # self.listBox = tk.Listbox(self.infoFrame,height=10,listvariable=self.matrices)
         else:
             self.infoText.set("No path found")
@@ -142,129 +144,137 @@ class GUI():
 
     def drawSearchTree(self):
         startNode = self.a.startNode
-        self.i = 0  
+        self.i = 0
         self.canvas.delete("all")
 
-        def drawNode(node:Node):
+        def drawNode(node: Node):
             # 画当前节点与连接线
             self.gap = 25 
             self.offset = 20 
             self.canvas.create_text(node.x * self.gap + self.offset,node.y*self.gap+self.offset,\
                 text="%.1f"%(node.g + node.h),\
                 tags=("node"))
+
             if node.father:
                 if node in self.a.pathlist:
-                    color = "green" 
+                    color = "green"
                 else:
                     color = "black" 
                 self.canvas.create_line(node.x * self.gap+self.offset,node.y*self.gap+self.offset,node.father.x*self.gap+self.offset,\
                     node.father.y * self.gap+self.offset,\
                     tags=("line"),fill=color)
-
-        def iterSearch(node:Node,depth):
+                
+        def iterSearch(node: Node, depth):
             childLen = len(node.children)
-            if childLen == 0: 
-                node.x = self.i 
-                node.y = depth 
+            if childLen == 0:
+                node.x = self.i
+                node.y = depth
                 self.i += 1
 
-            elif childLen == 1: 
-                iterSearch(node.children[0],depth+1)
+            elif childLen == 1:
+                iterSearch(node.children[0], depth+1)
                 self.i = node.children[0].x
                 node.x = self.i
-                node.y = depth 
+                node.y = depth
                 self.i += 1
 
             elif childLen == 2:
-                iterSearch(node.children[0],depth+1)
-                node.x = self.i 
+                iterSearch(node.children[0], depth+1)
+                node.x = self.i
                 node.y = depth
-                self.i+=1
-                iterSearch(node.children[1],depth+1)
+                self.i += 1
+                iterSearch(node.children[1], depth+1)
 
             elif childLen == 3:
-                iterSearch(node.children[0],depth+1)
-                iterSearch(node.children[1],depth+1)
+                iterSearch(node.children[0], depth+1)
+                iterSearch(node.children[1], depth+1)
                 self.i = node.children[1].x
-                node.x = self.i 
+                node.x = self.i
                 node.y = depth
                 self.i += 1
 
-                iterSearch(node.children[2],depth+1)
+                iterSearch(node.children[2], depth+1)
 
-            elif childLen == 4: 
-                iterSearch(node.children[0],depth+1)
-                iterSearch(node.children[1],depth+1)
-                node.x = self.i 
+            elif childLen == 4:
+                iterSearch(node.children[0], depth+1)
+                iterSearch(node.children[1], depth+1)
+                node.x = self.i
                 node.y = depth
-                self.i += 1 
+                self.i += 1
 
-                iterSearch(node.children[2],depth+1)
-                iterSearch(node.children[3],depth+1)
-        
-        def iterDraw(node:Node):
-            if node == None: 
-                return 
+                iterSearch(node.children[2], depth+1)
+                iterSearch(node.children[3], depth+1)
+
+        def iterDraw(node: Node):
+            if node == None:
+                return
             for child in node.children:
                 iterDraw(child)
-            drawNode(node) 
+            drawNode(node)
 
-        iterSearch(startNode,0)
+        iterSearch(startNode, 0)
         iterDraw(startNode)
-        
-        # event bindings 
-        def searchNode(startNode,x,y):
+
+        # event bindings
+        def searchNode(startNode, x, y):
             if startNode.x == x and startNode.y == y:
                 return startNode
             for child in startNode.children:
-                node = searchNode(child,x,y)
+                node = searchNode(child, x, y)
                 if node:
                     return node
             return None
+
         def on_click(e):
             self.nodeText.delete("0.0","end")
             x = (e.x - self.offset)//self.gap
             y = (e.y - self.offset)//self.gap
             targetNode = searchNode(self.a.startNode,x,y) 
+
             if targetNode:
                 matrixString = Matrix2String(targetNode.matrix)
-                self.nodeText.insert("0.0",matrixString)
+                self.nodeText.insert("0.0", matrixString)
+
         def on_enter(e):
             self.canvas.config(cursor="hand2")
+
         def on_leave(e):
             self.canvas.config(cursor="")
-            
+
         nodes = self.canvas.find_withtag("node")
         for node in nodes:
-            self.canvas.tag_bind(node,"<Enter>",on_enter) 
-            self.canvas.tag_bind(node,"<Leave>",on_leave)
-        self.canvas.bind("<1>",on_click)
+            self.canvas.tag_bind(node, "<Enter>", on_enter)
+            self.canvas.tag_bind(node, "<Leave>", on_leave)
+        self.canvas.bind("<1>", on_click)
 
     def setInfoFrame(self):
         self.infoFrame = ttk.LabelFrame(self.content, text="Infos")
-        self.textFrame = tk.LabelFrame(self.infoFrame,text="Path")
+        self.textFrame = tk.LabelFrame(self.infoFrame, text="Path")
         self.infoText = StringVar()
-        self.label = ttk.Label(self.infoFrame, textvariable=self.infoText)
+        self.label = ttk.Label(
+            self.infoFrame, textvariable=self.infoText, state="readonly")
         self.infoTexts = []
         self.matrices = tk.StringVar(value=self.infoTexts)
-        self.infoScroll = ttk.Scrollbar(self.textFrame,orient=tk.VERTICAL)
-        self.listBox = tk.Text(self.textFrame,width=7,yscrollcommand=self.infoScroll.set)
-        self.infoScroll["command"]=self.listBox.yview
+        self.infoScroll = ttk.Scrollbar(self.textFrame, orient=tk.VERTICAL)
+        self.listBox = tk.Text(self.textFrame, width=7,
+                               yscrollcommand=self.infoScroll.set)
+        self.infoScroll["command"] = self.listBox.yview
         self.nodeTextFrame = ttk.Frame(self.infoFrame)
-        self.nodeLabel = ttk.Label(self.nodeTextFrame,text="Current Node")
-        self.nodeText = tk.Text(self.nodeTextFrame,width=7,height=7)
-
+        self.nodeLabel = ttk.Label(
+            self.nodeTextFrame, text="Current Node", state="readonly")
+        self.nodeText = tk.Text(self.nodeTextFrame, width=7, height=7)
 
         # layout
         self.infoFrame.grid(column=2, row=0, rowspan=4,
-                            columnspan=2, sticky="nsew",padx=5,pady=10)
-        self.textFrame.grid(column=0,row=1,rowspan=2,sticky="wnes")
+                            columnspan=2, sticky="nsew", padx=5, pady=10)
+        self.textFrame.grid(column=0, row=1, rowspan=2, sticky="wnes")
         self.label.grid(column=0, row=0)
-        self.listBox.grid(column=0,row=1,sticky="wns")
-        self.infoScroll.grid(column=1,row=1,sticky="wns")
-        self.nodeTextFrame.grid(column=0,row=4,columnspan=2,sticky="news",padx=5,pady=5)
-        self.nodeLabel.grid(column=0,row=0,sticky="w")
-        self.nodeText.grid(column=0,row=1,sticky="w")
+        self.listBox.grid(column=0, row=1, sticky="wns")
+        self.infoScroll.grid(column=1, row=1, sticky="wns")
+        self.nodeTextFrame.grid(
+            column=0, row=4, columnspan=2, sticky="news", padx=5, pady=5)
+        self.nodeLabel.grid(column=0, row=0, sticky="w")
+        self.nodeText.grid(column=0, row=1, sticky="w")
 
     def setWindow(self):
         """settings for window"""
@@ -279,7 +289,7 @@ class GUI():
         """settings for canvas"""
         self.canvas = tk.Canvas(self.content)
         self.h = ttk.Scrollbar(self.content, orient=tk.HORIZONTAL)
-        self.v = ttk.Scrollbar(self.content,orient=tk.VERTICAL)
+        self.v = ttk.Scrollbar(self.content, orient=tk.VERTICAL)
 
         # size
         self.canvas["width"] = 1000
@@ -292,12 +302,12 @@ class GUI():
         self.v["command"] = self.canvas.yview
 
         self.canvas["xscrollcommand"] = self.h.set
-        self.canvas["yscrollcommand"] =self.v.set
-        
+        self.canvas["yscrollcommand"] = self.v.set
+
         # layout
         self.canvas.grid(column=0, row=0, sticky=[N, S, E, W])
         self.h.grid(column=0, row=1, sticky=(W, E))
-        self.v.grid(column=1,row=0,sticky="ns")
+        self.v.grid(column=1, row=0, sticky="ns")
 
     def run(self):
         self.setWindow()
@@ -309,7 +319,10 @@ class GUI():
 
 
 if __name__ == "__main__":
-    window = tk.Tk()
+    # window = tk.Tk()
+    style = Style(theme="flatly")
+    window = style.master
     window.title("A-star")
+    window.resizable(False, False)
     gui = GUI(window)
     gui.run()
