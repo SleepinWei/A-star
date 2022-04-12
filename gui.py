@@ -1,10 +1,7 @@
-from collections import deque
 import tkinter as tk
-from tkinter import StringVar, ttk
+from tkinter import Canvas, StringVar, ttk
 from tkinter import W, E, S, N
 from tkinter import messagebox as mb
-from turtle import width
-from matplotlib.ft2font import VERTICAL
 import numpy as np
 from ttkbootstrap import Style
 from A_Star import *
@@ -30,6 +27,12 @@ class GUI():
         self.dstString = [tk.StringVar() for i in range(9)]
         self.infoText = " "*50  # ?占位
 
+        self.funcChoiceString = tk.StringVar()
+        self.funcChoiceString.set("Manhattan Distance")
+        self.comboBoxFrame = ttk.Frame(self.srcDstFrame)
+        self.funcComboBox = ttk.Combobox(self.comboBoxFrame,textvariable=self.funcChoiceString)
+        self.funcComboBox["values"] = ("Manhattan Distance","Number of misplaced blocks","Euclidiean Distance")
+        self.funcLabel = ttk.Label(self.comboBoxFrame,text="Choose Heuristic Function")
 
         # set default value for entries
         defaultSrc = [2, 8, 3, 1, 0, 5, 4, 7, 6]
@@ -69,9 +72,6 @@ class GUI():
                     self.srcString[i].get() if self.srcString[i].get() != "" else -1)
                 self.dstArray[pos[i][0], pos[i][1]] = int(
                     self.dstString[i].get() if self.srcString[i].get() != "" else -1)
-            #TODO:test 
-            print(self.srcArray.flatten())
-            print(self.dstArray.flatten())
 
             if checkValid(self.srcArray) and checkValid(self.dstArray):
                 self.runAStar()
@@ -96,19 +96,31 @@ class GUI():
             self.dstEntries[i].grid(
                 column=pos[i][1], row=pos[i][0], padx=1, pady=2)
         self.confirm.grid(row=1, column=0, padx=5, pady=5)
+        self.comboBoxFrame.grid(row=0,column=2,sticky="nsew")
+        self.funcLabel.grid(row=0,column=0,sticky="wn",pady=[15,5])
+        self.funcComboBox.grid(row=1,column=0,sticky="wn")
 
     def runAStar(self):
 
         self.a = A_Star(Node(self.srcArray.tolist()), Node(self.dstArray.tolist()))
-
+        
         # a = A_Star(Node([[2, 8, 3], [1, 0, 5], [4, 7, 6]]), Node(
         #     [[1, 2, 3], [4, 5, 6], [7, 8, 0]]))
+        funcChoice = self.funcChoiceString.get()
+        func = None
+        if funcChoice == "Manhattan Distance":
+            func = setH1
+        elif funcChoice == "Number of misplaced blocks":
+            func = setH2
+        elif funcChoice == "Euclidiean Distance":
+            func = setH3
 
-        if self.a.start():
+        if self.a.start(func):
             infoText = ""
             infoText += "Number of expanded nodes: " + str(self.a.step) + "\n"
             infoText += "Number of generated nodes: " + str(self.a.generate) + "\n"
             infoText += "Time cost: " + str(self.a.getTime()) + " ms\n"
+            infoText += "Function Choice: " + funcChoice + "\n"
             self.infoText.set(infoText)
             # self.infoText += "Path: \n" + str(a.getPathString())
             self.infoTexts = [Matrix2String(n.matrix) for n in self.a.pathlist[::-1]]
@@ -117,9 +129,6 @@ class GUI():
             for string in self.infoTexts:
                 self.listBox.insert("end",string + "\n")
             # self.listBox = tk.Listbox(self.infoFrame,height=10,listvariable=self.matrices)
-            # TODO: test
-            print(self.infoTexts)
-            print(self.matrices.get())
         else:
             self.infoText.set("No path found")
 
@@ -135,9 +144,15 @@ class GUI():
             # 画当前节点与连接线
             gap = 40 
             offset = 20 
-            self.canvas.create_text(node.x * gap + offset,node.y*gap+offset,text="%.1f"%(node.g + node.h))
+            self.canvas.create_text(node.x * gap + offset,node.y*gap+offset,text="%.1f"%(node.g + node.h),\
+                tags=("node"))
             if node.father:
-                self.canvas.create_line(node.x * gap+offset,node.y*gap+offset,node.father.x*gap+offset,node.father.y * gap+offset)
+                if node in self.a.pathlist:
+                    color = "green" 
+                else:
+                    color = "black" 
+                self.canvas.create_line(node.x * gap+offset,node.y*gap+offset,node.father.x*gap+offset,node.father.y * gap+offset,\
+                    tags=("line"),fill=color)
 
         def iterSearch(node:Node,depth):
             childLen = len(node.children)
@@ -189,9 +204,39 @@ class GUI():
 
         iterSearch(startNode,0)
         iterDraw(startNode)
+        
+        # event bindings 
+        def searchNode(startNode,x,y):
+            if startNode.x == x and startNode.y == y:
+                return startNode
+            for child in startNode.children:
+                node = searchNode(child,x,y)
+                if node:
+                    return node
+            return None
+        def on_click(e):
+            self.nodeText.delete("0.0","end")
+            gap = 40 
+            offset = 20
+            x = (e.x - offset)//gap
+            y = (e.y - offset)//gap
+            targetNode = searchNode(self.a.startNode,x,y) 
+            if targetNode:
+                matrixString = Matrix2String(targetNode.matrix)
+                self.nodeText.insert("0.0",matrixString)
+        def on_enter(e):
+            self.canvas.config(cursor="hand2")
+        def on_leave(e):
+            self.canvas.config(cursor="")
+            
+        nodes = self.canvas.find_withtag("node")
+        for node in nodes:
+            self.canvas.tag_bind(node,"<Enter>",on_enter) 
+            self.canvas.tag_bind(node,"<Leave>",on_leave)
+        self.canvas.bind("<1>",on_click)
 
     def setInfoFrame(self):
-        self.infoFrame = tk.LabelFrame(self.content, text="Infos")
+        self.infoFrame = ttk.LabelFrame(self.content, text="Infos")
         self.textFrame = tk.LabelFrame(self.infoFrame,text="Path")
         self.infoText = StringVar()
         self.label = ttk.Label(self.infoFrame, textvariable=self.infoText)
@@ -200,6 +245,10 @@ class GUI():
         self.infoScroll = ttk.Scrollbar(self.textFrame,orient=tk.VERTICAL)
         self.listBox = tk.Text(self.textFrame,width=7,yscrollcommand=self.infoScroll.set)
         self.infoScroll["command"]=self.listBox.yview
+        self.nodeTextFrame = ttk.Frame(self.infoFrame)
+        self.nodeLabel = ttk.Label(self.nodeTextFrame,text="Current Node")
+        self.nodeText = tk.Text(self.nodeTextFrame,width=7,height=7)
+
 
         # layout
         self.infoFrame.grid(column=2, row=0, rowspan=4,
@@ -208,6 +257,9 @@ class GUI():
         self.label.grid(column=0, row=0)
         self.listBox.grid(column=0,row=1,sticky="wns")
         self.infoScroll.grid(column=1,row=1,sticky="wns")
+        self.nodeTextFrame.grid(column=0,row=4,columnspan=2,sticky="news",padx=5,pady=5)
+        self.nodeLabel.grid(column=0,row=0,sticky="w")
+        self.nodeText.grid(column=0,row=1,sticky="w")
 
     def setWindow(self):
         """settings for window"""
@@ -232,8 +284,8 @@ class GUI():
         # commands
         self.h["command"] = self.canvas.xview
         self.canvas["xscrollcommand"] = self.h.set
-        # self.canvas.create_rectangle((10,10,30,30),fill="LightCyan")
-        # self.canvas.create_line(10, 10, 200, 50)
+        
+        
 
         # layout
         self.canvas.grid(column=0, row=0, sticky=[N, S, E, W])

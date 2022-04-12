@@ -42,6 +42,31 @@ def getStatus(matrix):
                         sum += 1
     return sum
 
+# 以Manhattan距离为启发函数
+def setH1(startNode, endNode):
+    for x in range(0, 3):
+        for y in range(0, 3):
+            for m in range(0, 3):
+                for n in range(0, 3):
+                    if startNode.matrix[x][y] == endNode.matrix[m][n]:
+                        startNode.h += (abs(x - m) + abs(y - n))
+
+# 以不在目标位置上的点的个数为启发函数
+def setH2(startNode, endNode):
+    for x in range(0, 3):
+        for y in range(0, 3):
+            if startNode.matrix[x][y] != endNode.matrix[x][y]:
+                startNode.h += 1
+
+# 以Euclidean距离为启发函数
+def setH3(startNode, endNode):
+    for x in range(0, 3):
+        for y in range(0, 3):
+            for m in range(0, 3):
+                for n in range(0, 3):
+                    if startNode.matrix[x][y] == endNode.matrix[m][n]:
+                        startNode.h += math.sqrt((m-x)*(m-x)+(n-y)*(n-y))
+
 
 # 定义节点数据
 class Node:
@@ -53,31 +78,6 @@ class Node:
         self.h = h  # h(n):节点n到目标结点的最小代价路径估计值
         self.x = 0 
         self.y = 0 # positions 
-
-    # 以Manhattan距离为启发函数
-    def setH1(self, endNode):
-        for x in range(0, 3):
-            for y in range(0, 3):
-                for m in range(0, 3):
-                    for n in range(0, 3):
-                        if self.matrix[x][y] == endNode.matrix[m][n]:
-                            self.h += (abs(x - m) + abs(y - n))
-
-    # 以不在目标位置上的点的个数为启发函数
-    def setH2(self, endNode):
-        for x in range(0, 3):
-            for y in range(0, 3):
-                if self.matrix[x][y] != endNode.matrix[x][y]:
-                    self.h += 1
-
-    # 以Euclidean距离为启发函数
-    def setH3(self, endNode):
-        for x in range(0, 3):
-            for y in range(0, 3):
-                for m in range(0, 3):
-                    for n in range(0, 3):
-                        if self.matrix[x][y] == endNode.matrix[m][n]:
-                            self.h += math.sqrt((m-x)*(m-x)+(n-y)*(n-y))
 
     def setG(self, g):
         self.g = g
@@ -156,7 +156,7 @@ class A_Star:
         return None
 
     # 搜索一个节点
-    def searchOneNode(self, node):
+    def searchOneNode(self, node,func):
 
         if self.nodeInCloselist(node):
             return
@@ -166,7 +166,8 @@ class A_Star:
         # 如果节点不在Open表中，就把它加入
         if self.nodeInOpenlist(node) == False:
             node.setG(gTemp)
-            node.setH3(self.endNode)  # H值计算   !!此行代码可更换启发函数，例setH1，setH2……
+            # node.setH3(self.endNode)  # H值计算   !!此行代码可更换启发函数，例setH1，setH2……
+            func(node,self.endNode)
             self.openList.append(node)
             self.currentNode.children.append(node) # 记录子节点
             node.father = self.currentNode
@@ -181,7 +182,7 @@ class A_Star:
         return
 
     # 搜索下一个可以移动的数码，并进行移动，以此生成新节点
-    def searchNext(self):
+    def searchNext(self,func):
         flag = False
         for x in range(0, 3):
             for y in range(0, 3):
@@ -198,26 +199,26 @@ class A_Star:
             self.generate += 1
             matrixTemp = move(copy.deepcopy(
                 self.currentNode.matrix), x, y, x - 1, y)
-            self.searchOneNode(Node(matrixTemp))
+            self.searchOneNode(Node(matrixTemp),func)
         if x + 1 < 3:
             self.generate += 1
             matrixTemp = move(copy.deepcopy(
                 self.currentNode.matrix), x, y, x + 1, y)
-            self.searchOneNode(Node(matrixTemp))
+            self.searchOneNode(Node(matrixTemp),func)
         if y - 1 >= 0:
             self.generate += 1
             matrixTemp = move(copy.deepcopy(
                 self.currentNode.matrix), x, y, x, y - 1)
-            self.searchOneNode(Node(matrixTemp))
+            self.searchOneNode(Node(matrixTemp),func)
         if y + 1 < 3:
             self.generate += 1
             matrixTemp = move(copy.deepcopy(
                 self.currentNode.matrix), x, y, x, y + 1)
-            self.searchOneNode(Node(matrixTemp))
+            self.searchOneNode(Node(matrixTemp),func)
         return
 
     # 开始搜索
-    def start(self):
+    def start(self,func):
 
         self.start_time = datetime.datetime.now()
 
@@ -228,7 +229,8 @@ class A_Star:
             return False
 
         # 将初始节点加入Open表
-        self.startNode.setH3(self.endNode)   # 此行代码可更换启发函数，例setH1，setH2……
+        # self.startNode.setH3(self.endNode)   # 此行代码可更换启发函数，例setH1，setH2……
+        func(self.startNode,self.endNode)
         self.startNode.setG(self.step)
         self.openList.append(self.startNode)
 
@@ -238,7 +240,7 @@ class A_Star:
             self.closeList.append(self.currentNode)
             self.openList.remove(self.currentNode)
             self.step = self.currentNode.getG()
-            self.searchNext()
+            self.searchNext(func)
 
             # 检验是否结束
             if self.endNodeInOpenList():  # 终点在Open表中
