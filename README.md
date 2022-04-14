@@ -5,9 +5,10 @@ Project on 8-puzzle of Artificial Intelligence, 2022 Spring
 ## features
 
 - [x] A-star algorithm
-- [ ] Visualization of search tree
-- [ ] GUI interface
-- [ ] etc..
+- [x] Visualization of search tree
+- [x] Basic GUI interface
+- [x] interactive canvas 
+- [x] show matrix of selected node
 
 ## package requirements
 
@@ -15,3 +16,4 @@ Project on 8-puzzle of Artificial Intelligence, 2022 Spring
 - datetime
 - math
 - tkinter
+- ttkBootstrap
