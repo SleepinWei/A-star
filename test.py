@@ -17,17 +17,6 @@
 #     else:
 #         print("No solution!")
 
-class A():
-    def __init__(self,a):
-        self.a = a 
-
-
-list1 = [] 
-a = A(1)
-list1.append(a)
-
-print(id(a))
-print(id(list1[0]))
-
-print(1//2)
-print(1/2)
+if True:
+    a = 2
+print(a)
